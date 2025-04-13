@@ -2,23 +2,37 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose';
-import cors from 'cors'; 
+import cors from 'cors';
+import Message from './models/Message.js'; 
 import dotenv from 'dotenv';
-import Counselor from './models/counselor.js';
+import Counselor from './models/Counselor.js';
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+
+// Configure CORS and Socket.IO based on environment
+const isProduction = process.env.NODE_ENV === 'production';
+const clientUrl = isProduction 
+  ? 'https://care-scc.vercel.app'
+  : 'http://localhost:3000';
+
+console.log('Client URL:', clientUrl);
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: clientUrl,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: clientUrl,
+  credentials: true
+}));
 app.use(express.json());
 
 // MongoDB Connection
@@ -80,7 +94,7 @@ io.on('connection', (socket) => {
               // Emit event to notify counselor about new student message
               console.log('Emitting new_student_message event');
               io.emit('new_student_message', {
-                facultyId : facultyId,
+                facultyId: facultyId,
                 studentId: studentId
               });
             }
@@ -138,4 +152,6 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Client URL: ${clientUrl}`);
 }); 
