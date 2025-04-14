@@ -13,10 +13,8 @@ const app = express();
 const server = http.createServer(app);
 
 // Configure CORS and Socket.IO based on environment
-const isProduction = process.env.NODE_ENV === 'production';
-const clientUrl = isProduction 
-  ? 'https://care-scc.vercel.app'
-  : 'http://localhost:3000';
+// const isProduction = process.env.NODE_ENV === 'production';
+const clientUrl = 'https://care-scc.vercel.app';
 
 console.log('Client URL:', clientUrl);
 
@@ -30,7 +28,7 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-  origin: clientUrl,
+  origin: "*",
   credentials: true
 }));
 app.use(express.json());
