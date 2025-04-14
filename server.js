@@ -3,7 +3,6 @@ import http from 'http';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import Message from './models/Message.js'; 
 import dotenv from 'dotenv';
 import Counselor from './models/Counselor.js';
 
