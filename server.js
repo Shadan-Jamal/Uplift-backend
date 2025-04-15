@@ -5,35 +5,26 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Counselor from './models/Counselor.js';
+import { FRONTEND_URL, PORT, MONGODB_URI, CORS_OPTIONS } from './config.js';
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
-// Configure CORS and Socket.IO based on environment
-// const isProduction = process.env.NODE_ENV === 'production';
-const clientUrl = 'https://care-scc.vercel.app';
-
-console.log('Client URL:', clientUrl);
+// Configure CORS
+app.use(cors(CORS_OPTIONS));
 
 const io = new Server(server, {
   cors: {
-    origin: clientUrl,
-    methods: ["GET", "POST"],
+    origin: FRONTEND_URL,
+    methods: ['GET', 'POST'],
     credentials: true
   }
 });
 
-// Middleware
-app.use(cors({
-  origin: "*",
-  credentials: true
-}));
-app.use(express.json());
-
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+// Connect to MongoDB
+mongoose.connect(MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -41,7 +32,11 @@ mongoose.connect(process.env.MONGODB_URI)
 const onlineUsers = new Map();
 
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  console.log('New client connected');
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
 
   // Handle user connection
   socket.on('user_connected', (userData) => {
@@ -146,9 +141,8 @@ io.on('connection', (socket) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Client URL: ${clientUrl}`);
+  console.log(`Environment: ${isDevelopment ? 'development' : 'production'}`);
+  console.log(`Frontend URL: ${FRONTEND_URL}`);
 }); 
