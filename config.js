@@ -10,16 +10,18 @@ const FRONTEND_URL = isDevelopment
   : process.env.FRONTEND_URL_PROD;
 
 // Server configuration
-const PORT = process.env.PORT || 3001;
+// In production, use the PORT provided by the hosting platform
+// In development, use 3001
+const PORT = (isDevelopment ? 3001 : 10000);
 
 // MongoDB configuration
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // CORS configuration
 const CORS_OPTIONS = {
-  origin: FRONTEND_URL,
+  origin: "*",
   methods: ['GET', 'POST'],
   credentials: true
 };
 
-export {FRONTEND_URL, PORT, MONGODB_URI, CORS_OPTIONS};
+export {FRONTEND_URL, PORT, MONGODB_URI, CORS_OPTIONS, isDevelopment};

@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Counselor from './models/Counselor.js';
-import { FRONTEND_URL, PORT, MONGODB_URI, CORS_OPTIONS } from './config.js';
+import { FRONTEND_URL, PORT, MONGODB_URI, CORS_OPTIONS, isDevelopment } from './config.js';
 
 dotenv.config();
 
@@ -15,12 +15,16 @@ const server = http.createServer(app);
 // Configure CORS
 app.use(cors(CORS_OPTIONS));
 
+// Configure Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL,
+    origin: "*",
     methods: ['GET', 'POST'],
-    credentials: true
-  }
+    credentials: true,
+    transports: ['websocket', 'polling']
+  },
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 // Connect to MongoDB
@@ -32,11 +36,7 @@ mongoose.connect(MONGODB_URI)
 const onlineUsers = new Map();
 
 io.on('connection', (socket) => {
-  console.log('New client connected');
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
+  console.log('New client connected:', socket.id);
 
   // Handle user connection
   socket.on('user_connected', (userData) => {
@@ -141,7 +141,10 @@ io.on('connection', (socket) => {
 });
 
 // Start server
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const port = PORT;
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+  console.log(`Environment: ${isDevelopment ? 'development' : 'production'}`);
   console.log(`Frontend URL: ${FRONTEND_URL}`);
+  console.log(`MongoDB connected: ${MONGODB_URI ? 'yes' : 'no'}`);
 }); 
